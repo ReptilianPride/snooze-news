@@ -1,4 +1,5 @@
 import {Annotation} from "@langchain/langgraph";
+import { NewsResult } from "./tools";
 
 export const AgentState = Annotation.Root({
     symbol: Annotation<string>,
@@ -15,7 +16,7 @@ export const AgentState = Annotation.Root({
         reducer: (_prev,next) => next,
         default: () => [],
     }),
-    news: Annotation<unknown[]>({
+    news: Annotation<NewsResult[]>({
         reducer: (_prev,next)=>next,
         default: ()=>[],
     }),

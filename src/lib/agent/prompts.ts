@@ -22,3 +22,29 @@ Respond with ONLY a JSON array of strings, no markdown, no commentary. Example:
 }
 
 // how to make sure that it wont do any type of calculation
+
+type NewsQueryInput = {
+    sector: string;
+    symbol: string;
+    changePercent: number;
+    investigationPlan: string[];
+}
+
+export function newsQueryPrompt(input: NewsQueryInput):string {
+    const direction = input.changePercent >= 0 ? "rose" : "fell";
+    const NUMBER_OF_NEWS_QUERIES = 2
+
+    return `
+The ${input.sector} sector (${input.symbol}) ${direction} ${Math.abs(input.changePercent).toFixed(2)}% today, more than its usual daily movement.
+
+Investigation plan for context:
+${input.investigationPlan.map((p, i) => `${i + 1}. ${p}`).join("\n")}
+
+Your job: come up with ${NUMBER_OF_NEWS_QUERIES} news search queries most likely to surface the real-world reason for this move. Think broadly — it could be a policy change, tariffs, a major company's earnings or guidance, a geopolitical event, a regulatory decision, a supply chain disruption, a natural disaster, or broad macroeconomic data (jobs, inflation, rates).
+
+Each query should be short (3-6 words) and describe a single concept or event — not a company name paired with a jargon term, and not multiple entities joined together (e.g. prefer "industrial tariffs" over "Caterpillar Honeywell earnings guidance").
+
+Respond with ONLY a JSON array of exactly 2 strings, no markdown, no commentary. Example:
+["industrial sector tariffs", "manufacturing PMI report"]
+    `
+}
