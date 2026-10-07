@@ -1,3 +1,5 @@
+import { NewsResult } from "./tools";
+
 type InvestigationInput = {
     sector: string;
     symbol: string;
@@ -46,5 +48,45 @@ Each query should be short (3-6 words) and describe a single concept or event â€
 
 Respond with ONLY a JSON array of exactly 2 strings, no markdown, no commentary. Example:
 ["industrial sector tariffs", "manufacturing PMI report"]
+    `
+}
+
+type EvidenceValidationInput = {
+    sector: string;
+    symbol: string;
+    changePercent: number;
+    investigationPlan: string[];
+    news: NewsResult[];
+}
+
+export function evidenceValidationPrompt(input: EvidenceValidationInput):string {
+    const direction = input.changePercent >= 0 ? "rose" : "fell";
+    const articlesList = input.news.map((n,i)=>(
+        `${i+1}. Title: ${n.title}\n    Source: ${n.source} | Published: ${n.publishedAt}\n Snippet: ${n.snippet}\n URL: ${n.url}`
+    )).join("\n\n");
+
+    return `
+The ${input.sector} sector (${input.symbol}) ${direction} ${Math.abs(input.changePercent).toFixed(2)}% today, more than its usual daily movement.
+
+Investigation plan:
+${input.investigationPlan.map((p, i) => `${i + 1}. ${p}`).join("\n")}
+
+Retrieved news articles:
+${articlesList}
+
+Evaluate every article above for relevance to explaining this specific sector move. Do not assume an article explains the move just because it mentions the sector name or a related keyword â€” it must plausibly relate to an actual catalyst (policy, earnings, macro data, geopolitical event, regulatory decision, supply chain, disaster, etc.) for this sector around this time. Prefer recent, sector-specific, catalyst-related news over tangential or unrelated matches.
+
+Select up to 5 pieces of evidence, but only include articles that genuinely and directly explain this specific move. If only 1 or 2 qualify, return only those. If none qualify, return an empty array []. Never include an article just to reach a minimum count. Every article you include must have supportsAnomaly set to true and a relevance of at least 0.5.
+
+Respond with ONLY a JSON array, no markdown, no commentary, in this exact shape:
+[
+  {
+    "title": "...",
+    "url": "...",
+    "relevance": 0.92,
+    "supportsAnomaly": true,
+    "reason": "..."
+  }
+]
     `
 }
