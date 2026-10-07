@@ -1,9 +1,9 @@
 import {StateGraph, END, START} from "@langchain/langgraph";
 import {AgentState,AgentStateType} from "./state";
 import { askOpenCode } from "./llm";
-import { evidenceValidationPrompt, investigationPlanPrompt, newsQueryPrompt } from "./prompts";
+import { evidenceValidationPrompt, investigationPlanPrompt, newsQueryPrompt, finalExplainationPrompt } from "./prompts";
 import {searchNews} from "./tools";
-import { NewsResult, Evidence } from "./state-types";
+import { NewsResult, Evidence, FinalExplanation } from "./state-types";
 
 
 function parseJsonArray(raw:string):string[]{
@@ -52,6 +52,30 @@ function parseEvidence(raw:string):Evidence[] {
         .slice(0,MAX_EVIDENCE);
 }
 
+function parseFinalExplanation(raw:string):FinalExplanation {
+    const cleaned = raw.replace(/^```(json)?/i, "").replace(/```$/, "").trim();
+    const parsed = JSON.parse(cleaned);
+    
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+        throw new Error("LLM did not return a JSON object for the explanation");
+    }
+    if (typeof parsed.headline !== "string" || typeof parsed.summary !== "string") {
+        throw new Error("Explanation is missing a string headline or summary");
+    }
+    if (!Array.isArray(parsed.stories)) {
+        throw new Error("Explanation stories is not an array");
+    }
+
+    const stories = parsed.stories.map((s: any, i: number) => {
+        if (typeof s !== "object" || s === null || typeof s.title !== "string" || typeof s.summary !== "string") {
+            throw new Error(`Story ${i} is missing a string title or summary`);
+        }
+        return { title: s.title, summary: s.summary };
+    });
+
+    return { headline: parsed.headline, summary: parsed.summary, stories };
+}
+
 async function investigate(state:AgentStateType): Promise<Partial<AgentStateType>>{
     const prompt = investigationPlanPrompt(state);
 
@@ -64,10 +88,10 @@ async function investigate(state:AgentStateType): Promise<Partial<AgentStateType
             investigationPlan: plan,
         };
     } catch(err){
+        console.error("[investigateNode] failed:", err);
         return {
             investigationStatus: "plan_failed",
             investigationPlan:[],
-            finalExplanation: `Investigation plan failed: ${err instanceof Error? err.message : "unknwon error"}`,
         };
     }
 }
@@ -89,9 +113,9 @@ async function searchNewsNode(state: AgentStateType): Promise<Partial<AgentState
             news,
         };
     } catch(err){
+        console.error("[searchNewsNode] failed:", err);
         return{
             investigationStatus: "news_search_failed",
-            finalExplanation: `News search failed: ${err instanceof Error ? err.message : "unknown error"}`,
         };
     }
 }
@@ -110,22 +134,45 @@ async function validateEvidenceNode(state:AgentStateType): Promise<Partial<Agent
             evidence,
         };
     } catch(err){
+        console.error("[validateEvidenceNode] failed:", err);
         return {
             investigationStatus: "evidence_validation_failed",
             evidence:[],
-            finalExplanation: `Evidence validation failed: ${err instanceof Error ? err.message : "unknown error"}`,
         };
     }
 }
 
+async function generateExplanationNode(state: AgentStateType): Promise<Partial<AgentStateType>>{
+    if(state.investigationStatus !== "evidence_validated"){
+        return {};
+    }
+
+    try{
+        const raw = await askOpenCode(finalExplainationPrompt(state));
+        const finalExplanation = parseFinalExplanation(raw);
+
+        return {
+            investigationStatus: "explanation_generated",
+            finalExplanation,
+        };
+    } catch(err){
+        console.error("[generateExplanationNode] failed:", err);
+        return {
+            investigationStatus: "explanation_failed",
+            finalExplanation: undefined,
+        };
+    }
+}
 
 const graph = new StateGraph(AgentState)
     .addNode("investigate",investigate)
     .addNode("searchNews", searchNewsNode)
     .addNode("validateEvidence",validateEvidenceNode)
+    .addNode("generateExplanation", generateExplanationNode)
     .addEdge(START,"investigate")
     .addEdge("investigate","searchNews")
     .addEdge("searchNews","validateEvidence")
-    .addEdge("validateEvidence",END)
+    .addEdge("validateEvidence","generateExplanation")
+    .addEdge("generateExplanation",END)
 
 export const investigationGraph = graph.compile();

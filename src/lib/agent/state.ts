@@ -1,5 +1,5 @@
 import {Annotation} from "@langchain/langgraph";
-import { NewsResult, Evidence } from "./state-types";
+import { NewsResult, Evidence, FinalExplanation } from "./state-types";
 
 // For testing (remove for nextjs server)
 import dotenv from "dotenv";
@@ -29,7 +29,7 @@ export const AgentState = Annotation.Root({
         reducer: (_prev,next)=>next,
         default: ()=>[],
     }),
-    finalExplanation: Annotation<string|undefined>({
+    finalExplanation: Annotation<FinalExplanation|undefined>({
         reducer: (_prev,next)=>next,
         default: ()=>undefined,
     }),

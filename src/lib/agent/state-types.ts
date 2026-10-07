@@ -15,3 +15,12 @@ export type Evidence = {
     sectorRelevance: boolean;
     reason: string;
 };
+
+export type FinalExplanation = {
+    headline: string;
+    summary: string;
+    stories: {
+        title: string;
+        summary: string;
+    }[];
+};

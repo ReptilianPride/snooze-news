@@ -1,4 +1,6 @@
+import { takeCoverage } from "v8";
 import { NewsResult } from "./tools";
+import { Evidence } from "./state-types";
 
 type InvestigationInput = {
     sector: string;
@@ -98,3 +100,47 @@ Respond with ONLY a JSON array, no markdown, no commentary, in this exact shape:
     `
 }
 // and a relevance of at least 0.5.
+
+type FinalExplanationInput = {
+    sector: string;
+    symbol: string;
+    changePercent: number;
+    zScore: number;
+    evidence: Evidence[];
+};
+
+export function finalExplainationPrompt(input:FinalExplanationInput):string {
+    const direction = input.changePercent >= 0 ? "rose" : "fell";
+
+    const evidenceList = input.evidence.map((e,i)=>(`${i+1}. Title: ${e.title}\n URL: ${e.url}\n Relevance: ${e.relevance}\n Note: ${e.reason}`)
+    ).join("\n\n");
+
+    return `
+You are writing a short briefing for someone following the ${input.sector} sector.
+
+Context only (do NOT try to explain it): the sector ETF ${input.symbol} ${direction} ${Math.abs(input.changePercent).toFixed(2)}% today (z-score ${input.zScore.toFixed(2)}).
+
+Validated news evidence:
+${evidenceList}
+
+Task: summarise the most important developments for this sector, based on the evidence above.
+
+Rules:
+- Use ONLY the supplied evidence. Do not invent facts, numbers, companies or events.
+- Focus on the sector and what is happening in it, not on the ETF's price movement.
+- Do NOT claim that any news item caused the price movement.
+- Mention uncertainty where appropriate (e.g. an article is only loosely related, or evidence is thin).
+- Prioritise the strongest and most relevant stories; leave out weak ones.
+- Keep it concise: a 2-3 sentence summary and at most 4 stories, each with a 1-2 sentence summary.
+- Never use words like "drove", "boosted", "caused", "led to", "lifted" or "pushed" to link news to the price move. Just report what the news says.
+
+Respond with ONLY a JSON object, no markdown, no commentary, in this exact shape:
+{
+  "headline": "...",
+  "summary": "...",
+  "stories": [
+    { "title": "...", "summary": "..." }
+  ]
+}    
+    `
+}
