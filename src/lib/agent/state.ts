@@ -1,6 +1,11 @@
 import {Annotation} from "@langchain/langgraph";
 import { NewsResult, Evidence } from "./state-types";
 
+// For testing (remove for nextjs server)
+import dotenv from "dotenv";
+dotenv.config({path:".env.local"});
+// For testing end
+
 export const AgentState = Annotation.Root({
     symbol: Annotation<string>,
     sector: Annotation<string>,

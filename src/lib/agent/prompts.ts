@@ -34,19 +34,25 @@ type NewsQueryInput = {
 
 export function newsQueryPrompt(input: NewsQueryInput):string {
     const direction = input.changePercent >= 0 ? "rose" : "fell";
+    const today = new Date().toISOString().slice(0,10);
     const NUMBER_OF_NEWS_QUERIES = 2
 
     return `
-The ${input.sector} sector (${input.symbol}) ${direction} ${Math.abs(input.changePercent).toFixed(2)}% today, more than its usual daily movement.
+Today's date is ${today}. The ${input.sector} sector (${input.symbol}) ${direction} ${Math.abs(input.changePercent).toFixed(2)}% today, more than its usual daily movement.
 
 Investigation plan for context:
 ${input.investigationPlan.map((p, i) => `${i + 1}. ${p}`).join("\n")}
 
-Your job: come up with ${NUMBER_OF_NEWS_QUERIES} news search queries most likely to surface the real-world reason for this move. Think broadly — it could be a policy change, tariffs, a major company's earnings or guidance, a geopolitical event, a regulatory decision, a supply chain disruption, a natural disaster, or broad macroeconomic data (jobs, inflation, rates).
+Your job: come up with ${NUMBER_OF_NEWS_QUERIES} news search queries most likely to surface the real-world reason for this move. The news must be from the last 48 hours. Each query must come from a DIFFERENT angle, chosen from:
+- macro data or interest rates (jobs, inflation, Fed, yields)
+- policy, tariffs or regulation
+- sector-wide business news (orders, demand, supply chain, major company earnings)
+- a stock market wrap (e.g. "stocks close Dow industrials")
+- geopolitical events or disasters
 
-Each query should be short (3-6 words) and describe a single concept or event — not a company name paired with a jargon term, and not multiple entities joined together (e.g. prefer "industrial tariffs" over "Caterpillar Honeywell earnings guidance").
+Each query should be short (2-4 plain words) and describe a single concept or event, not a company name paired with a jargon term, and not multiple entities joined together (e.g. prefer "industrial tariffs" over "Caterpillar Honeywell earnings guidance").
 
-Respond with ONLY a JSON array of exactly 2 strings, no markdown, no commentary. Example:
+Respond with ONLY a JSON array of exactly ${NUMBER_OF_NEWS_QUERIES} strings, no markdown, no commentary. Example:
 ["industrial sector tariffs", "manufacturing PMI report"]
     `
 }
@@ -74,9 +80,10 @@ ${input.investigationPlan.map((p, i) => `${i + 1}. ${p}`).join("\n")}
 Retrieved news articles:
 ${articlesList}
 
-Evaluate every article above for relevance to explaining this specific sector move. Do not assume an article explains the move just because it mentions the sector name or a related keyword — it must plausibly relate to an actual catalyst (policy, earnings, macro data, geopolitical event, regulatory decision, supply chain, disaster, etc.) for this sector around this time. Prefer recent, sector-specific, catalyst-related news over tangential or unrelated matches.
+Evaluate every article above for usefulness to someone monitoring this sector. Do not assume an article is relevant just because it mentions the sector name or a related keyword. Prefer recent, sector-specific news that would be useful to someone following this sector, including policy, earnings, macro data, geopolitical events, regulatory decisions, supply chains, major business developments, or other meaningful developments.
 
-Select up to 5 pieces of evidence, but only include articles that genuinely and directly explain this specific move. If only 1 or 2 qualify, return only those. If none qualify, return an empty array []. Never include an article just to reach a minimum count. Every article you include must have supportsAnomaly set to true and a relevance of at least 0.5.
+Select up to 5 of the most useful and relevant articles. The articles do not need to explain or cause the sector's price movement. If only 1 or 2 are genuinely relevant, return only those. If none are relevant, return an empty array []. Never include an article just to reach a minimum count.
+Every article you include must have sectorRelevance set to true 
 
 Respond with ONLY a JSON array, no markdown, no commentary, in this exact shape:
 [
@@ -84,9 +91,10 @@ Respond with ONLY a JSON array, no markdown, no commentary, in this exact shape:
     "title": "...",
     "url": "...",
     "relevance": 0.92,
-    "supportsAnomaly": true,
+    "sectorRelevance": true,
     "reason": "..."
   }
 ]
     `
 }
+// and a relevance of at least 0.5.

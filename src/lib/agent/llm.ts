@@ -1,8 +1,3 @@
-// For testing (remove for nextjs server)
-import dotenv from "dotenv";
-dotenv.config({path:".env.local"});
-// For testing end
-
 const BASE_URL = process.env.OPENCODE_BASE_URL!;
 const PROVIDER_ID = process.env.OPENCODE_PROVIDER_ID!;
 const MODEL_ID = process.env.OPENCODE_MODEL_ID!;

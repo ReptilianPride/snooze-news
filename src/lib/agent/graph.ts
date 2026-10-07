@@ -32,7 +32,7 @@ function parseEvidence(raw:string):Evidence[] {
             typeof item.title !== "string" ||
             typeof item.url !== "string" ||
             typeof item.relevance !== "number" ||
-            typeof item.supportsAnomaly !== "boolean" ||
+            typeof item.sectorRelevance !== "boolean" ||
             typeof item.reason !== "string"
         ){
             throw new Error(`Evidence item ${i} is missing or has invalid required fields`);
@@ -41,13 +41,13 @@ function parseEvidence(raw:string):Evidence[] {
             title: item.title,
             url: item.url,
             relevance: item.relevance,
-            supportsAnomaly: item.supportsAnomaly,
+            sectorRelevance: item.sectorRelevance,
             reason: item.reason,
         };
     });
 
     return validated
-        .filter((e)=>e.supportsAnomaly && e.relevance >= MIN_RELEVANCE && e.relevance <=1)
+        .filter((e)=>e.sectorRelevance && e.relevance >= MIN_RELEVANCE && e.relevance <=1)
         .sort((a,b)=> b.relevance - a.relevance)
         .slice(0,MAX_EVIDENCE);
 }

@@ -12,6 +12,6 @@ export type Evidence = {
     title: string;
     url: string;
     relevance: number;
-    supportsAnomaly: boolean;
+    sectorRelevance: boolean;
     reason: string;
 };
