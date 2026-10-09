@@ -16,6 +16,8 @@ export async function searchNews(query:string):Promise<NewsResult[]>{
     url.searchParams.set("apiKey",apiKey);
     url.searchParams.set("q",query);
     url.searchParams.set("language","en");
+    url.searchParams.set("sort","relevancy");
+    url.searchParams.set("prioritydomain","top");
     // url.searchParams.set("category","business") //might have to make this dynamic
 
     const res = await fetch(url.toString());

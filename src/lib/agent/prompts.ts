@@ -129,10 +129,18 @@ Rules:
 - Use ONLY the supplied evidence. Do not invent facts, numbers, companies or events.
 - Focus on the sector and what is happening in it, not on the ETF's price movement.
 - Do NOT claim that any news item caused the price movement.
+- Never use words like "drove", "boosted", "caused", "led to", "lifted" or "pushed" to link news to the price move. Just report what the news says.
 - Mention uncertainty where appropriate (e.g. an article is only loosely related, or evidence is thin).
 - Prioritise the strongest and most relevant stories; leave out weak ones.
-- Keep it concise: a 2-3 sentence summary and at most 4 stories, each with a 1-2 sentence summary.
-- Never use words like "drove", "boosted", "caused", "led to", "lifted" or "pushed" to link news to the price move. Just report what the news says.
+
+Plain-language rules:
+- Write at a middle-school reading level. Use short sentences (under 20 words) and everyday words.
+- Avoid jargon and acronyms (such as PMI, CAGR, yields, ETF, z-score). If a term is unavoidable, explain it in a few plain words.
+- Do not mention the z-score or statistics in the output.
+- Say what happened and why it matters to the sector, in simple terms.
+- Headline: one plain sentence, under 12 words.
+- Summary: 2 short sentences.
+- At most 4 stories, each with a short plain title and a 1-sentence summary.
 
 Respond with ONLY a JSON object, no markdown, no commentary, in this exact shape:
 {
