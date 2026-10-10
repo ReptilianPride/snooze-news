@@ -1,6 +1,5 @@
 import { investigationGraph } from "./graph";
 import { fetchAllSectors } from "../market/yahoo";
-import { StateInput } from "./state-types";
 
 function logSummary(state: any) {
   console.log(`
