@@ -3,16 +3,6 @@ import { fetchAllSectors } from "@/lib/market/yahoo";
 
 export const dynamic = "force-dynamic";
 
-// export async function GET(){
-//     const sectors = await fetchAllSectors();
-//     const okCount = sectors.filter((s)=>!s.error).length
-
-//     return NextResponse.json(
-//         {updatedAt: new Date().toISOString(), okCount, sectors},
-//         {status: okCount === 0 ? 502 : 200}
-//     );
-// }
-
 export async function GET(){
     const sectors = await fetchAllSectors();
     const okCount = sectors.filter((s)=>!s.error).length;

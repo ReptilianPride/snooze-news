@@ -28,11 +28,6 @@ export async function searchNews(query:string):Promise<NewsResult[]>{
 
     const data = await res.json();
 
-    // DEBUG START
-    console.log(`[searchNews] query = "${query}" status="${data.status}" totalResults=${data.totalResults} resultsLen=${Array.isArray(data.results) ? data.results.length : "N/A"}`);
-    if(data.status !=="success") console.log("[searchNews] full response:", JSON.stringify(data));
-    // DEBUG END
-
     const results = Array.isArray(data.results) ? data.results : [];
 
     return results.map((r:any)=>({

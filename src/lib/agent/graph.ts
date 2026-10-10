@@ -105,13 +105,37 @@ async function searchNewsNode(state: AgentStateType): Promise<Partial<AgentState
         const raw = await askOpenCode(newsQueryPrompt(state));
         const queries = parseJsonArray(raw);
 
-        const resultsPerQuery = await Promise.all(queries.map((q)=>searchNews(q)));
-        const news:NewsResult[] = resultsPerQuery.flat();
+        console.log(`[${state.symbol}] Queries (${queries.length}):`, queries);
+
+        const settled = await Promise.allSettled(queries.map((q) => searchNews(q)));
+        settled.forEach((r,i)=>{
+            if (r.status === "rejected") console.error(`[${state.symbol}] Query "${queries[i]}" failed:`, r.reason);
+        })
+
+        const fulfilled = settled.filter(
+            (r): r is PromiseFulfilledResult<NewsResult[]> => r.status === "fulfilled"
+        );
+        if(fulfilled.length === 0) throw new Error("All news searches failed");
+
+        const seen = new Set<string>();
+        const news = fulfilled
+            .flatMap((r) => r.value)
+            .filter((n) => {
+                if (!n.url || seen.has(n.url)) return false;
+                seen.add(n.url);
+                return true;
+            });
+
+        console.log(`[${state.symbol}] Raw articles after dedupe: ${news.length}`);
+
+        // const resultsPerQuery = await Promise.all(queries.map((q)=>searchNews(q)));
+        // const news:NewsResult[] = resultsPerQuery.flat();
 
         return {
             investigationStatus: "news_retrieved",
             news,
         };
+        
     } catch(err){
         console.error("[searchNewsNode] failed:", err);
         return{
@@ -123,6 +147,10 @@ async function searchNewsNode(state: AgentStateType): Promise<Partial<AgentState
 async function validateEvidenceNode(state:AgentStateType): Promise<Partial<AgentStateType>> {
     if(state.investigationStatus !== 'news_retrieved'){
         return {};
+    }
+
+    if (state.news.length === 0) {
+        return { investigationStatus: "no_relevant_news", evidence: [] };
     }
 
     try{
@@ -143,6 +171,16 @@ async function validateEvidenceNode(state:AgentStateType): Promise<Partial<Agent
 }
 
 async function generateExplanationNode(state: AgentStateType): Promise<Partial<AgentStateType>>{
+    if (state.investigationStatus === "no_relevant_news") {
+        return {
+            finalExplanation: {
+            headline: `No major ${state.sector} news found`,
+            summary: "No strongly relevant sector news was found in the available search results.",
+            stories: [],
+            },
+        };
+    }
+    
     if(state.investigationStatus !== "evidence_validated"){
         return {};
     }

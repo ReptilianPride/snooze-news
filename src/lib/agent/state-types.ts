@@ -1,5 +1,12 @@
 // Types for state
 
+export type StateInput = {
+    symbol: string;
+    sector: string;
+    zScore: number;
+    changePercent: number;
+}
+
 export type NewsResult = {
     title: string;
     url:string;
