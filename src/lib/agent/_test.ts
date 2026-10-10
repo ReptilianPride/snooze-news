@@ -26,6 +26,7 @@ async function main(){
     });
 
     for (const tc of testCases) {
+        console.log(`[!]Agent runnign for ${tc.symbol}:${tc.sector}`);
         try {
             const result = await investigationGraph.invoke(tc);
             logSummary(result);
