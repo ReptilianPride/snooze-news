@@ -23,8 +23,14 @@ async function main(){
             changePercent: s.changePercent,
         }];
     });
+    
+    const selected = testCases.filter((d)=>{
+        if(["XLK","XLE","XLRE"].includes(d.symbol)){
+            return true
+        }
+    })
 
-    for (const tc of testCases) {
+    for (const tc of selected) {
         console.log(`[!]Agent runnign for ${tc.symbol}:${tc.sector}`);
         try {
             const result = await investigationGraph.invoke(tc);
@@ -35,18 +41,6 @@ async function main(){
         }
         console.log("=".repeat(50));
     }
-
-    // const result = await investigationGraph.invoke({
-    //     symbol:"XLI",
-    //     sector:"Industrials",
-    //     zScore:1.65,
-    //     changePercent:0.99,
-    // });
-    // // console.log(result);
-    // console.log(JSON.stringify(result.finalExplanation, null,2));
-    // console.log(result.evidence.map((e)=> e.title));
-
-    // logSummary(result);
 }
 
 

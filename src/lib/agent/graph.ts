@@ -1,9 +1,9 @@
 import {StateGraph, END, START} from "@langchain/langgraph";
 import {AgentState,AgentStateType} from "./state";
 import { askOpenCode } from "./llm";
-import { evidenceValidationPrompt, investigationPlanPrompt, newsQueryPrompt, finalExplainationPrompt } from "./prompts";
+import { evidenceValidationPrompt, investigationPlanPrompt, newsQueryPrompt, finalExplanationPrompt } from "./prompts";
 import {searchNews} from "./tools";
-import { NewsResult, Evidence, FinalExplanation } from "./state-types";
+import { NewsResult, Evidence, FinalExplanation, FinalStory } from "./state-types";
 
 
 function parseJsonArray(raw:string):string[]{
@@ -17,7 +17,7 @@ function parseJsonArray(raw:string):string[]{
 
 const MIN_RELEVANCE = 0.5;
 const MAX_EVIDENCE = 5;
-function parseEvidence(raw:string):Evidence[] {
+function parseEvidence(raw: string, news: NewsResult[]): Evidence[] {
     const cleaned = raw.replace(/^```(json)?/i, "").replace(/```$/, "").trim();
     const parsed = JSON.parse(cleaned);
 
@@ -25,37 +25,52 @@ function parseEvidence(raw:string):Evidence[] {
         throw new Error("LLM did not return a JSON array for evidence");
     }
 
-    const validated:Evidence[] = parsed.map((item,i)=>{
-        if(
+    const byUrl = new Map(news.map((n) => [n.url, n]));
+    const seen = new Set<string>();
+    const validated: Evidence[] = [];
+
+    parsed.forEach((item, i) => {
+        if (
             typeof item !== "object" ||
             item === null ||
-            typeof item.title !== "string" ||
             typeof item.url !== "string" ||
             typeof item.relevance !== "number" ||
             typeof item.sectorRelevance !== "boolean" ||
             typeof item.reason !== "string"
-        ){
+        ) {
             throw new Error(`Evidence item ${i} is missing or has invalid required fields`);
         }
-        return {
-            title: item.title,
-            url: item.url,
+
+        const article = byUrl.get(item.url);
+        if (!article) {
+            console.warn(`[parseEvidence] dropped unknown URL: ${item.url}`);
+            return;
+        }
+        if (seen.has(item.url)) return;
+        seen.add(item.url);
+
+        validated.push({
+            title: article.title,
+            url: article.url,
+            source: article.source,
+            publishedAt: article.publishedAt,
+            snippet: article.snippet,
             relevance: item.relevance,
             sectorRelevance: item.sectorRelevance,
             reason: item.reason,
-        };
+        });
     });
 
     return validated
-        .filter((e)=>e.sectorRelevance && e.relevance >= MIN_RELEVANCE && e.relevance <=1)
-        .sort((a,b)=> b.relevance - a.relevance)
-        .slice(0,MAX_EVIDENCE);
+        .filter((e) => e.sectorRelevance && e.relevance >= MIN_RELEVANCE && e.relevance <= 1)
+        .sort((a, b) => b.relevance - a.relevance)
+        .slice(0, MAX_EVIDENCE);
 }
 
-function parseFinalExplanation(raw:string):FinalExplanation {
+export function parseFinalExplanation(raw: string, evidence: Evidence[]): FinalExplanation {
     const cleaned = raw.replace(/^```(json)?/i, "").replace(/```$/, "").trim();
     const parsed = JSON.parse(cleaned);
-    
+
     if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
         throw new Error("LLM did not return a JSON object for the explanation");
     }
@@ -66,14 +81,33 @@ function parseFinalExplanation(raw:string):FinalExplanation {
         throw new Error("Explanation stories is not an array");
     }
 
-    const stories = parsed.stories.map((s: any, i: number) => {
-        if (typeof s !== "object" || s === null || typeof s.title !== "string" || typeof s.summary !== "string") {
-            throw new Error(`Story ${i} is missing a string title or summary`);
+    const byUrl = new Map(evidence.map((e) => [e.url, e]));
+    const used = new Set<string>();
+    const stories: FinalStory[] = [];
+
+    parsed.stories.forEach((s: any, i: number) => {
+        if (typeof s !== "object" || s === null || typeof s.url !== "string" || typeof s.summary !== "string") {
+            console.warn(`[parseFinalExplanation] story ${i} rejected: missing url or summary`);
+            return;
         }
-        return { title: s.title, summary: s.summary };
+        const article = byUrl.get(s.url);
+        if (!article || used.has(s.url)) {
+            console.warn(`[parseFinalExplanation] story ${i} rejected: unmatched or repeated URL ${s.url}`);
+            return;
+        }
+        used.add(s.url);
+        stories.push({
+            title: article.title,
+            url: article.url,
+            source: article.source,
+            publishedAt: article.publishedAt,
+            summary: s.summary,
+        });
     });
 
-    return { headline: parsed.headline, summary: parsed.summary, stories };
+    if (stories.length === 0) throw new Error("No story matched a validated article");
+
+    return { headline: parsed.headline, summary: parsed.summary, stories: stories.slice(0, 4) };
 }
 
 async function investigate(state:AgentStateType): Promise<Partial<AgentStateType>>{
@@ -150,12 +184,12 @@ async function validateEvidenceNode(state:AgentStateType): Promise<Partial<Agent
     }
 
     if (state.news.length === 0) {
-        return { investigationStatus: "no_relevant_news", evidence: [] };
+        return { investigationStatus: "no_relevant_evidence", evidence: [] };
     }
 
     try{
         const raw = await askOpenCode(evidenceValidationPrompt(state));
-        const evidence = parseEvidence(raw);
+        const evidence = parseEvidence(raw, state.news);
 
         return {
             investigationStatus: evidence.length > 0 ? "evidence_validated" : "no_relevant_evidence",
@@ -171,23 +205,14 @@ async function validateEvidenceNode(state:AgentStateType): Promise<Partial<Agent
 }
 
 async function generateExplanationNode(state: AgentStateType): Promise<Partial<AgentStateType>>{
-    if (state.investigationStatus === "no_relevant_news") {
-        return {
-            finalExplanation: {
-            headline: `No major ${state.sector} news found`,
-            summary: "No strongly relevant sector news was found in the available search results.",
-            stories: [],
-            },
-        };
-    }
     
     if(state.investigationStatus !== "evidence_validated"){
         return {};
     }
 
     try{
-        const raw = await askOpenCode(finalExplainationPrompt(state));
-        const finalExplanation = parseFinalExplanation(raw);
+        const raw = await askOpenCode(finalExplanationPrompt(state));
+        const finalExplanation = parseFinalExplanation(raw, state.evidence);
 
         return {
             investigationStatus: "explanation_generated",

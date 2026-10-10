@@ -109,7 +109,7 @@ type FinalExplanationInput = {
     evidence: Evidence[];
 };
 
-export function finalExplainationPrompt(input:FinalExplanationInput):string {
+export function finalExplanationPrompt(input:FinalExplanationInput):string {
     const direction = input.changePercent >= 0 ? "rose" : "fell";
 
     const evidenceList = input.evidence.map((e,i)=>(`${i+1}. Title: ${e.title}\n URL: ${e.url}\n Relevance: ${e.relevance}\n Note: ${e.reason}`)
@@ -147,7 +147,7 @@ Respond with ONLY a JSON object, no markdown, no commentary, in this exact shape
   "headline": "...",
   "summary": "...",
   "stories": [
-    { "title": "...", "summary": "..." }
+    { "url": "...", "summary": "..." }
   ]
 }    
     `
