@@ -15,6 +15,9 @@ export type SectorSnapshot = {
     price: number|null;
     previousClose:number|null;
     changePercent:number|null;
+    weekAgoClose: number|null;
+    weeklyChangePercent: number|null;
+    asOf: string|null;
     history:DailyBar[];
     anomaly: AnomalyResult|null;
     error?:string;
@@ -40,12 +43,17 @@ async function fetchSector(symbol:string, name:string): Promise<SectorSnapshot>{
         const latest = history[history.length-1];
         const previous = history[history.length-2];
 
+        const weekAgo = history.length >= 6 ? history[history.length - 6] : null;
+
         return {
             symbol,
             name,
             price: latest.close,
             previousClose: previous.close,
             changePercent: ((latest.close - previous.close)/previous.close)*100,
+            weekAgoClose: weekAgo?.close ?? null,
+            weeklyChangePercent: weekAgo ? ((latest.close - weekAgo.close) / weekAgo.close)*100 : null,
+            asOf: result.meta.regularMarketTime ? new Date(result.meta.regularMarketTime).toISOString() : null,
             history,
             anomaly
         };
@@ -56,6 +64,9 @@ async function fetchSector(symbol:string, name:string): Promise<SectorSnapshot>{
             price:null,
             previousClose:null,
             changePercent:null,
+            weekAgoClose: null,
+            weeklyChangePercent: null,
+            asOf: null,
             history:[],
             anomaly:null,
             error: err instanceof Error ? err.message : "Unknown Error"

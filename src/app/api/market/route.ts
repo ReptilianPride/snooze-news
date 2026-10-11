@@ -10,7 +10,7 @@ export async function GET(){
     const ranked = [...sectors].sort((a,b)=>{
         const az = Math.abs(a.anomaly?.zScore ?? 0);
         const bz = Math.abs(b.anomaly?.zScore ?? 0);
-        return az-bz;
+        return bz-az;
     });
 
     const anomalies = ranked.filter((s)=>s.anomaly?.isAnomaly)
@@ -22,7 +22,12 @@ export async function GET(){
         }));
 
     return NextResponse.json(
-        {updatedAt: new Date().toISOString(), okCount, anomalies, sectors:ranked},
+        {
+            updatedAt: new Date().toISOString(), 
+            okCount, 
+            anomalies, 
+            sectors:ranked.map(({ history, ...rest }) => rest),
+        },
         {status:okCount === 0 ? 502 : 200}
     )
 }
