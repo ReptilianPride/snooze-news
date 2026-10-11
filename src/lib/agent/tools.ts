@@ -1,12 +1,6 @@
-const NEWSDATA_BASE_URL = "https://newsdata.io/api/1/latest";
+import { NewsResult } from "./state-types";
 
-export type NewsResult = {
-    title: string;
-    url:string;
-    source:string;
-    publishedAt:string;
-    snippet:string;
-};
+const NEWSDATA_BASE_URL = "https://newsdata.io/api/1/latest";
 
 export async function searchNews(query:string):Promise<NewsResult[]>{
     const apiKey = process.env.NEWSDATA_API_KEY;
@@ -23,7 +17,7 @@ export async function searchNews(query:string):Promise<NewsResult[]>{
     const res = await fetch(url.toString());
     if(!res.ok){
         const body = await res.text().catch(()=>"<no body>");
-        throw new Error(`Newsdata.ioL request failed (${res.status}): ${body}`);
+        throw new Error(`Newsdata.io request failed (${res.status}): ${body}`);
     }
 
     const data = await res.json();
@@ -34,7 +28,7 @@ export async function searchNews(query:string):Promise<NewsResult[]>{
         title: r.title ?? "",
         url: r.link ?? "",
         source: r.source_id ?? r.source_name ?? "unknown",
-        publishAt: r.pubDate ?? "",
+        publishedAt: r.pubDate ?? "",
         snippet: r.description ?? "",
     }));
 }
