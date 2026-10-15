@@ -49,7 +49,7 @@ function Tile({ s, selected, onClick }: { s: Sector; selected: boolean; onClick:
     <button
       onClick={onClick}
       disabled={!!s.error}
-      className={`text-left bg-neutral-950 border ${border} p-3 hover:bg-neutral-900 transition-colors disabled:opacity-50 font-mono`}
+      className={`text-left bg-neutral-950 border ${border} p-3 hover:bg-neutral-900 transition-colors disabled:opacity-50 font-mono cursor-pointer`}
     >
       <div className="flex items-center justify-between">
         <span className="text-amber-400 font-bold tracking-wider">{s.symbol}</span>
@@ -100,7 +100,7 @@ export default function MarketOverview({selection, onSelect}:{selection: Selecti
             <span>AS OF {data ? new Date(data.updatedAt).toLocaleString() : "--"}</span>
             <button
                 onClick={() => onSelect("ALL")}
-                className={`px-3 py-1 border ${selection === "ALL" ? "bg-amber-400 text-black border-amber-400" : "border-amber-400 text-amber-400 hover:bg-amber-400/10"}`}
+                className={`px-3 py-1 border cursor-pointer ${selection === "ALL" ? "bg-amber-400 text-black border-amber-400" : "border-amber-400 text-amber-400 hover:bg-amber-400/10"}`}
             >
                 GET ALL
             </button>
