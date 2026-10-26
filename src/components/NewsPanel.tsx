@@ -111,7 +111,19 @@ export default function NewsPanel({ selection, onBack }: { selection: "ALL" | st
         {data && data.briefings.length === 0 && (
             <p className="text-neutral-500 text-sm">No news has been stored for this selection yet.</p>
         )}
-        {data?.briefings.map((b) => <Briefing key={b.symbol} b={b} />)}
+        {data && data.briefings.length > 0 && (
+            <div
+                className={
+                data.briefings.length === 1
+                    ? "max-w-3xl"
+                    : "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
+                }
+            >
+                {data.briefings.map((b) => (
+                <Briefing key={b.symbol} b={b} />
+                ))}
+            </div>
+        )}
         </section>
     );
 }
