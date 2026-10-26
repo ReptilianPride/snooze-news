@@ -38,9 +38,23 @@ export async function askOpenCode(prompt:string): Promise<string>{
 
     const data: MessageResponse = await res.json();
 
-    return data.parts
-        .filter((p)=>p.type === "text" && p.text)
-        .map((p)=>p.text)
+    // return data.parts
+    //     .filter((p)=>p.type === "text" && p.text)
+    //     .map((p)=>p.text)
+    //     .join("\n")
+    //     .trim();
+
+    const text = data.parts
+        .filter((p) => p.type === "text" && p.text)
+        .map((p) => p.text)
         .join("\n")
         .trim();
+
+    if (!text) {
+        throw new Error(
+            `Opencode returned no text. info=${JSON.stringify(data.info)} | part types=${data.parts.map((p) => p.type).join(",")}`
+        );
+    }
+
+    return text;
 }

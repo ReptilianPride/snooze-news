@@ -1,6 +1,5 @@
 import { takeCoverage } from "v8";
-import { NewsResult } from "./tools";
-import { Evidence } from "./state-types";
+import { Evidence, NewsResult } from "./state-types";
 
 type InvestigationInput = {
     sector: string;
