@@ -92,7 +92,7 @@ export default function MarketOverview({selection, onSelect, lastUpdated}:{selec
     return (
         <section className="bg-black text-neutral-200 p-4">
         <header className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-800 pb-2 mb-3 font-mono text-xs">
-            <h1 className="text-amber-400 font-bold tracking-widest">SECTOR HEARTBEAT // MARKET OVERVIEW</h1>
+            <h1 className="text-amber-400 font-bold tracking-widest">SNOOZE NEWS // MARKET OVERVIEW</h1>
             <div className="flex items-center gap-4 text-neutral-400">
             <span>
                 NYSE <span className={session === "OPEN" ? "text-green-400" : "text-red-400"}>{session}</span>
