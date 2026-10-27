@@ -29,7 +29,7 @@ export default function Page() {
     <main className="flex min-h-screen flex-col bg-black font-mono lg:h-screen lg:overflow-hidden">
       {/* Top bar */}
       <header className="flex items-center justify-between border-b border-neutral-800 px-4 py-2">
-        <h1 className="text-xs font-bold tracking-widest text-amber-400">SECTOR HEARTBEAT</h1>
+        <h1 className="text-xs font-bold tracking-widest text-amber-400">SNOOZE NEWS</h1>
         <span className="text-[10px] uppercase text-neutral-500">
           Last updated{" "}
           <span className="text-neutral-300">
