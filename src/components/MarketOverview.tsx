@@ -76,7 +76,7 @@ function Tile({ s, selected, onClick }: { s: Sector; selected: boolean; onClick:
   );
 }
 
-export default function MarketOverview({selection, onSelect}:{selection: Selection; onSelect: (s:Selection)=>void;}){
+export default function MarketOverview({selection, onSelect, lastUpdated}:{selection: Selection; onSelect: (s:Selection)=>void; lastUpdated: string|null;}){
     const [data, setData] = useState<MarketResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -97,7 +97,15 @@ export default function MarketOverview({selection, onSelect}:{selection: Selecti
             <span>
                 NYSE <span className={session === "OPEN" ? "text-green-400" : "text-red-400"}>{session}</span>
             </span>
-            <span>AS OF {data ? new Date(data.updatedAt).toLocaleString() : "--"}</span>
+            <span>
+              DATA UPDATED:{" "}
+              {lastUpdated
+                ? new Date(lastUpdated).toLocaleString("en-GB", {
+                    day: "2-digit", month: "short", year: "numeric",
+                    hour: "2-digit", minute: "2-digit",
+                  })
+                : "--"}
+            </span>
             <button
                 onClick={() => onSelect("ALL")}
                 className={`px-3 py-1 border cursor-pointer ${selection === "ALL" ? "bg-amber-400 text-black border-amber-400" : "border-amber-400 text-amber-400 hover:bg-amber-400/10"}`}

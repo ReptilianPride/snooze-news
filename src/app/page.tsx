@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import MarketOverview, { Selection } from "@/components/MarketOverview";
 import NewsPanel from "@/components/NewsPanel";
+import { fetchNews } from "@/lib/news-client";
 
 type Tab = "home" | "news";
 
 export default function Page() {
   const [selection, setSelection] = useState<Selection>(null);
   const [tab, setTab] = useState<Tab>("home");
+
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  useEffect(() => {
+    fetchNews("ALL")
+      .then((d) => setLastUpdated(d.lastUpdated))
+      .catch(() => setLastUpdated(null));
+  }, []);
 
   const handleSelect = (s: Selection) => {
     setSelection(s);
@@ -24,17 +32,29 @@ export default function Page() {
 
   return (
     <main className="min-h-screen bg-black">
-      <nav className="flex border-b border-neutral-800 font-mono px-4">
-        <button onClick={() => setTab("home")} className={tabClass("home")}>
-          HOME
-        </button>
-        <button onClick={() => setTab("news")} className={tabClass("news")}>
-          NEWS{selection ? ` // ${selection === "ALL" ? "ALL" : selection}` : ""}
-        </button>
+      <nav className="flex items-center border-b border-neutral-800 font-mono px-4">
+        <div className="flex">
+          <button onClick={() => setTab("home")} className={tabClass("home")}>HOME</button>
+          <button onClick={() => setTab("news")} className={tabClass("news")}>
+            NEWS{selection ? ` // ${selection === "ALL" ? "ALL" : selection}` : ""}
+          </button>
+        </div>
+
+        <span className="ml-auto text-[10px] text-neutral-500 uppercase">
+          Last updated{" "}
+          <span className="text-neutral-300">
+            {lastUpdated
+              ? new Date(lastUpdated).toLocaleString("en-GB", {
+                  day: "2-digit", month: "short", year: "numeric",
+                  hour: "2-digit", minute: "2-digit",
+                })
+              : "--"}
+          </span>
+        </span>
       </nav>
 
       <div className={tab === "home" ? "" : "hidden"}>
-        <MarketOverview selection={selection} onSelect={handleSelect} />
+        <MarketOverview selection={selection} onSelect={handleSelect} lastUpdated={lastUpdated} />
       </div>
 
       {tab === "news" &&

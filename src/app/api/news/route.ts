@@ -78,9 +78,22 @@ export async function GET(req: NextRequest) {
     const briefings = ((data ?? []) as unknown as BriefingRow[])
       .map(toBriefing)
       .filter((b): b is SectorBriefing => b !== null);
+      
+    const { data: lastRun, error: runErr } = await getSupabaseAdmin()
+      .from("ingestion_runs")
+      .select("finished_at")
+      .not("finished_at", "is", null)
+      .order("finished_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (runErr) console.error("[/api/news] lastUpdated lookup failed:", runErr);
 
-    const body: NewsResponse = { briefings };
+    const body: NewsResponse = {
+      briefings,
+      lastUpdated: (lastRun?.finished_at as string | undefined) ?? null, // CHANGED
+    };
     return NextResponse.json(body);
+
   } catch (err) {
     console.error("[/api/news] failed:", err);
     return NextResponse.json({ error: "Failed to load news" }, { status: 500 });

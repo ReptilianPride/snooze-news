@@ -18,4 +18,4 @@ export type SectorBriefing = {
   stories: NewsStory[];
 };
 
-export type NewsResponse = { briefings: SectorBriefing[] };
+export type NewsResponse = { briefings: SectorBriefing[]; lastUpdated: string | null };
