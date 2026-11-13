@@ -8,6 +8,10 @@ export async function GET(){
     const okCount = sectors.filter((s)=>!s.error).length;
 
     const ranked = [...sectors].sort((a,b)=>{
+        const aAnomaly = a.anomaly?.isAnomaly ? 1 : 0;
+        const bAnomaly = b.anomaly?.isAnomaly ? 1 : 0;
+        if (aAnomaly !== bAnomaly) return bAnomaly - aAnomaly;
+
         const az = Math.abs(a.anomaly?.zScore ?? 0);
         const bz = Math.abs(b.anomaly?.zScore ?? 0);
         return bz-az;
