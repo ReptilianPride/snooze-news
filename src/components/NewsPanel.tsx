@@ -165,6 +165,15 @@ export default function NewsPanel({
     };
   }, [selection]);
 
+  const sectorOrder = new Map(sectors.map((s, i) => [s.symbol, i]));
+  const briefings = data
+    ? [...data.briefings].sort((a, b) => {
+        const ai = sectorOrder.get(a.symbol) ?? Number.MAX_SAFE_INTEGER;
+        const bi = sectorOrder.get(b.symbol) ?? Number.MAX_SAFE_INTEGER;
+        return ai - bi || a.symbol.localeCompare(b.symbol);
+      })
+    : [];
+
   return (
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between border-b border-line pb-2">
@@ -183,11 +192,11 @@ export default function NewsPanel({
 
       {error && <p className="text-sm text-negative">News failed to load: {error}</p>}
       {!data && !error && <p className="text-sm text-subtle">Loading news...</p>}
-      {data && data.briefings.length === 0 && (
+      {data && briefings.length === 0 && (
         <p className="text-sm text-subtle">No news has been stored for this selection yet.</p>
       )}
 
-        {data && data.briefings.length > 0 && (
+        {data && briefings.length > 0 && (
         <div
             className={
             selection === "ALL"
@@ -195,7 +204,7 @@ export default function NewsPanel({
                 : "grid grid-cols-1 gap-4"
             }
         >
-          {data.briefings.map((b) => (
+          {briefings.map((b) => (
             <Briefing
               key={b.symbol}
               b={b}
