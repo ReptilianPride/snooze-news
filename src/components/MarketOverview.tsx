@@ -29,15 +29,15 @@ function Row({ s, selected, onClick }: { s: Sector; selected: boolean; onClick: 
       : s.changePercent >= 0
       ? "text-positive"
       : "text-negative";
-  const border = anomaly ? "border-accent/40" : selected ? "border-accent/50" : "border-line";
+  const border = anomaly ? "border-accent-secondary/40" : selected ? "border-accent/50" : "border-line";
   const moveArrow = s.changePercent === null ? "" : s.changePercent >= 0 ? "▲" : "▼";
 
   return (
     <button
       onClick={onClick}
       disabled={!!s.error}
-      className={`flex min-h-0 cursor-pointer flex-col justify-center overflow-hidden rounded-md border px-2.5 py-1 text-left transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:cursor-not-allowed disabled:opacity-50 ${border} ${
-        selected ? "bg-white/5 ring-1 ring-accent/30" : "bg-transparent"
+      className={`flex min-h-0 cursor-pointer flex-col justify-center overflow-hidden rounded-md border px-2.5 py-1 text-left transition-colors hover:bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 disabled:cursor-not-allowed disabled:opacity-50 ${border} ${
+        selected ? "bg-hover ring-1 ring-accent/30" : "bg-transparent"
       }`}
     >
       <div className="flex items-center justify-between gap-2">
@@ -59,7 +59,7 @@ function Row({ s, selected, onClick }: { s: Sector; selected: boolean; onClick: 
             className={`rounded-sm px-1.5 py-0.5 text-[10px] font-bold ${
               s.error
                 ? "bg-negative/10 text-negative"
-                : "bg-accent/10 text-accent"
+                : "bg-accent-secondary/10 text-accent-secondary"
             }`}
           >
             {s.error ? "ERROR" : "ANOMALY"}
@@ -105,7 +105,7 @@ export default function MarketOverview({
         className={`cursor-pointer rounded-md border px-3 py-1 text-xs font-bold tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
           selection === "ALL"
             ? "border-accent/60 bg-accent/15 text-accent"
-            : "border-line text-subtle hover:bg-white/5 hover:text-ink"
+            : "border-line text-subtle hover:bg-hover hover:text-ink"
         }`}
       >
         ALL SECTORS

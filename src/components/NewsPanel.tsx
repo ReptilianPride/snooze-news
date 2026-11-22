@@ -56,8 +56,8 @@ function Briefing({
       <div className="border-b border-line">
         {/* Mobile: clickable sector tile */}
         <div
-          className={`flex w-full items-center justify-between gap-2 border-l-4 px-4 py-2 text-left transition-colors group-hover:bg-white/5 lg:hidden ${
-            anomaly ? "border-accent" : "border-line"
+          className={`flex w-full items-center justify-between gap-2 border-l-4 px-4 py-2 text-left transition-colors group-hover:bg-hover lg:hidden ${
+            anomaly ? "border-accent-secondary" : "border-line"
           }`}
         >
           <span className="min-w-0">
@@ -71,7 +71,7 @@ function Briefing({
           </span>
           <span className="flex items-center gap-2 font-mono text-sm tabular-nums">
             {anomaly && (
-              <span className="rounded-sm bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent">ANOMALY</span>
+              <span className="rounded-sm bg-accent-secondary/10 px-1.5 py-0.5 text-[10px] font-bold text-accent-secondary">ANOMALY</span>
             )}
             <span className={moveColor}>{pct(market?.changePercent ?? null)}</span>
           </span>
@@ -79,19 +79,19 @@ function Briefing({
 
         {/* Desktop: clickable sector label */}
         <div
-          className={`hidden items-center gap-2 border-l-4 px-4 py-2 text-left transition-colors group-hover:bg-white/5 lg:flex ${
-            anomaly ? "border-accent" : "border-line"
+          className={`hidden items-center gap-2 border-l-4 px-4 py-2 text-left transition-colors group-hover:bg-hover lg:flex ${
+            anomaly ? "border-accent-secondary" : "border-line"
           }`}
         >
           <span className="font-mono text-xs font-bold tracking-wider text-accent">{b.symbol}</span>
           <span className="text-sm text-subtle">{b.sector}</span>
           {anomaly && (
-            <span className="ml-auto rounded-sm bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent">ANOMALY</span>
+            <span className="ml-auto rounded-sm bg-accent-secondary/10 px-1.5 py-0.5 text-[10px] font-bold text-accent-secondary">ANOMALY</span>
           )}
         </div>
       </div>
 
-      <div className={`m-4 border-l-4 p-4 transition-colors group-hover:bg-white/5 ${style.box}`}>
+      <div className={`m-4 border-l-4 p-4 transition-colors group-hover:bg-hover ${style.box}`}>
         <div className="mb-2 flex items-center justify-between">
           <span className={`text-[11px] font-bold tracking-widest ${style.labelColor}`}>{style.label}</span>
           <span className="font-mono text-[11px] uppercase text-muted">Updated {fmtDate(b.generatedAt)}</span>
@@ -129,7 +129,7 @@ function Briefing({
                   </a>
                   <p className="mt-1 text-xs leading-relaxed text-subtle">{s.summary}</p>
                   <div className="mt-2 flex items-center gap-2 text-[10px] uppercase">
-                    <span className="rounded-sm bg-white/5 px-1.5 py-0.5 text-subtle">{s.source}</span>
+                    <span className="rounded-sm bg-hover px-1.5 py-0.5 text-subtle">{s.source}</span>
                     <span className="font-mono text-muted">{fmtDate(s.publishedAt)}</span>
                   </div>
                 </div>
