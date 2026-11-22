@@ -40,14 +40,24 @@ function Briefing({
     : { label: "AI BRIEFING", box: "border-accent/40 bg-accent/5", labelColor: "text-accent", text: "text-subtle" };
 
   return (
-    <article className="border border-line bg-surface">
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={`View ${b.sector} news`}
+      onClick={() => onSelect(b.symbol)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(b.symbol);
+        }
+      }}
+      className="group cursor-pointer border border-line bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+    >
       <div className="border-b border-line">
         {/* Mobile: clickable sector tile */}
-        <button
-          onClick={() => onSelect(b.symbol)}
-          aria-label={`View ${b.sector} news`}
-          className={`flex w-full cursor-pointer items-center justify-between gap-2 border-l-4 px-4 py-2 text-left transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 lg:hidden ${
-            anomaly ? "border-accent" : "border-line"
+        <div
+          className={`flex w-full items-center justify-between gap-2 border-l-4 px-4 py-2 text-left transition-colors group-hover:bg-hover lg:hidden ${
+            anomaly ? "border-accent-secondary" : "border-line"
           }`}
         >
           <span className="min-w-0">
@@ -61,38 +71,27 @@ function Briefing({
           </span>
           <span className="flex items-center gap-2 font-mono text-sm tabular-nums">
             {anomaly && (
-              <span className="rounded-sm bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent">ANOMALY</span>
+              <span className="rounded-sm bg-accent-secondary/10 px-1.5 py-0.5 text-[10px] font-bold text-accent-secondary">ANOMALY</span>
             )}
             <span className={moveColor}>{pct(market?.changePercent ?? null)}</span>
           </span>
-        </button>
+        </div>
 
         {/* Desktop: clickable sector label */}
-        <button
-          onClick={() => onSelect(b.symbol)}
-          aria-label={`View ${b.sector} news`}
-          className={`hidden w-full cursor-pointer items-center gap-2 border-l-4 px-4 py-2 text-left transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 lg:flex ${
-            anomaly ? "border-accent" : "border-line"
+        <div
+          className={`hidden items-center gap-2 border-l-4 px-4 py-2 text-left transition-colors group-hover:bg-hover lg:flex ${
+            anomaly ? "border-accent-secondary" : "border-line"
           }`}
         >
           <span className="font-mono text-xs font-bold tracking-wider text-accent">{b.symbol}</span>
           <span className="text-sm text-subtle">{b.sector}</span>
-        </button>
+          {anomaly && (
+            <span className="ml-auto rounded-sm bg-accent-secondary/10 px-1.5 py-0.5 text-[10px] font-bold text-accent-secondary">ANOMALY</span>
+          )}
+        </div>
       </div>
 
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label={`View ${b.sector} news`}
-        onClick={() => onSelect(b.symbol)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelect(b.symbol);
-          }
-        }}
-        className={`m-4 cursor-pointer border-l-4 p-4 transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${style.box}`}
-      >
+      <div className={`m-4 border-l-4 p-4 transition-colors group-hover:bg-hover ${style.box}`}>
         <div className="mb-2 flex items-center justify-between">
           <span className={`text-[11px] font-bold tracking-widest ${style.labelColor}`}>{style.label}</span>
           <span className="font-mono text-[11px] uppercase text-muted">Updated {fmtDate(b.generatedAt)}</span>
@@ -122,13 +121,15 @@ function Briefing({
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className="text-sm text-info hover:text-info/80 hover:underline"
                   >
                     {s.title} ↗
                   </a>
                   <p className="mt-1 text-xs leading-relaxed text-subtle">{s.summary}</p>
                   <div className="mt-2 flex items-center gap-2 text-[10px] uppercase">
-                    <span className="rounded-sm bg-white/5 px-1.5 py-0.5 text-subtle">{s.source}</span>
+                    <span className="rounded-sm bg-hover px-1.5 py-0.5 text-subtle">{s.source}</span>
                     <span className="font-mono text-muted">{fmtDate(s.publishedAt)}</span>
                   </div>
                 </div>
@@ -165,6 +166,15 @@ export default function NewsPanel({
     };
   }, [selection]);
 
+  const sectorOrder = new Map(sectors.map((s, i) => [s.symbol, i]));
+  const briefings = data
+    ? [...data.briefings].sort((a, b) => {
+        const ai = sectorOrder.get(a.symbol) ?? Number.MAX_SAFE_INTEGER;
+        const bi = sectorOrder.get(b.symbol) ?? Number.MAX_SAFE_INTEGER;
+        return ai - bi || a.symbol.localeCompare(b.symbol);
+      })
+    : [];
+
   return (
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between border-b border-line pb-2">
@@ -183,11 +193,11 @@ export default function NewsPanel({
 
       {error && <p className="text-sm text-negative">News failed to load: {error}</p>}
       {!data && !error && <p className="text-sm text-subtle">Loading news...</p>}
-      {data && data.briefings.length === 0 && (
+      {data && briefings.length === 0 && (
         <p className="text-sm text-subtle">No news has been stored for this selection yet.</p>
       )}
 
-        {data && data.briefings.length > 0 && (
+        {data && briefings.length > 0 && (
         <div
             className={
             selection === "ALL"
@@ -195,7 +205,7 @@ export default function NewsPanel({
                 : "grid grid-cols-1 gap-4"
             }
         >
-          {data.briefings.map((b) => (
+          {briefings.map((b) => (
             <Briefing
               key={b.symbol}
               b={b}
