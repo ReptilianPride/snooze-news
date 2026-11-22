@@ -77,6 +77,9 @@ function Briefing({
         >
           <span className="font-mono text-xs font-bold tracking-wider text-accent">{b.symbol}</span>
           <span className="text-sm text-subtle">{b.sector}</span>
+          {anomaly && (
+            <span className="ml-auto rounded-sm bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent">ANOMALY</span>
+          )}
         </button>
       </div>
 
