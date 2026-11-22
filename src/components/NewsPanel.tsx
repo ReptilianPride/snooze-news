@@ -40,13 +40,23 @@ function Briefing({
     : { label: "AI BRIEFING", box: "border-accent/40 bg-accent/5", labelColor: "text-accent", text: "text-subtle" };
 
   return (
-    <article className="border border-line bg-surface">
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={`View ${b.sector} news`}
+      onClick={() => onSelect(b.symbol)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onSelect(b.symbol);
+        }
+      }}
+      className="group cursor-pointer border border-line bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+    >
       <div className="border-b border-line">
         {/* Mobile: clickable sector tile */}
-        <button
-          onClick={() => onSelect(b.symbol)}
-          aria-label={`View ${b.sector} news`}
-          className={`flex w-full cursor-pointer items-center justify-between gap-2 border-l-4 px-4 py-2 text-left transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 lg:hidden ${
+        <div
+          className={`flex w-full items-center justify-between gap-2 border-l-4 px-4 py-2 text-left transition-colors group-hover:bg-white/5 lg:hidden ${
             anomaly ? "border-accent" : "border-line"
           }`}
         >
@@ -65,13 +75,11 @@ function Briefing({
             )}
             <span className={moveColor}>{pct(market?.changePercent ?? null)}</span>
           </span>
-        </button>
+        </div>
 
         {/* Desktop: clickable sector label */}
-        <button
-          onClick={() => onSelect(b.symbol)}
-          aria-label={`View ${b.sector} news`}
-          className={`hidden w-full cursor-pointer items-center gap-2 border-l-4 px-4 py-2 text-left transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 lg:flex ${
+        <div
+          className={`hidden items-center gap-2 border-l-4 px-4 py-2 text-left transition-colors group-hover:bg-white/5 lg:flex ${
             anomaly ? "border-accent" : "border-line"
           }`}
         >
@@ -80,22 +88,10 @@ function Briefing({
           {anomaly && (
             <span className="ml-auto rounded-sm bg-accent/10 px-1.5 py-0.5 text-[10px] font-bold text-accent">ANOMALY</span>
           )}
-        </button>
+        </div>
       </div>
 
-      <div
-        role="button"
-        tabIndex={0}
-        aria-label={`View ${b.sector} news`}
-        onClick={() => onSelect(b.symbol)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelect(b.symbol);
-          }
-        }}
-        className={`m-4 cursor-pointer border-l-4 p-4 transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${style.box}`}
-      >
+      <div className={`m-4 border-l-4 p-4 transition-colors group-hover:bg-white/5 ${style.box}`}>
         <div className="mb-2 flex items-center justify-between">
           <span className={`text-[11px] font-bold tracking-widest ${style.labelColor}`}>{style.label}</span>
           <span className="font-mono text-[11px] uppercase text-muted">Updated {fmtDate(b.generatedAt)}</span>
@@ -125,6 +121,8 @@ function Briefing({
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
                     className="text-sm text-info hover:text-info/80 hover:underline"
                   >
                     {s.title} ↗
